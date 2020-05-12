@@ -1,14 +1,46 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as React from 'react';
+import { useState } from 'react'
+
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useFonts } from '@use-expo/font';
+import { differenceInSeconds, startOfDay, addHours, setDate, getHours, startOfYesterday } from 'date-fns'
 
 import { MonoText } from '../components/StyledText';
 
 export default function HomeScreen() {
+  let [fontsLoaded] = useFonts({
+    'Exan-Regular': require('../assets/fonts/Exan-Regular.ttf'),
+  })
+
+  const [date, setDate] = useState(Date.now())
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setDate(Date.now())
+    }, 1000)
+    return () => clearInterval(interval)
+  })
+
+
+  const startOfDay = getHours(date) >= 4 ? addHours(startOfDay(date), 4) : addHours(startOfYesterday(date), 4)
+  const timeSec = differenceInSeconds(Date.now(), startOfDay)
+  const timeSeco = timeSec * 0.96
+
+
+
+  const pad2 = num => ("0" + num).slice(-2)
+
+  const seco1 = Math.floor(timeSeco / 10000)
+  const seco23 = pad2(Math.floor(timeSeco % 10000 / 100))
+  const seco45 = pad2(Math.floor(timeSeco % 100))
+
+  if (!fontsLoaded) return null
+
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      {/* <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.welcomeContainer}>
           <Image
             source={
@@ -47,7 +79,14 @@ export default function HomeScreen() {
         <View style={[styles.codeHighlightContainer, styles.navigationFilename]}>
           <MonoText style={styles.codeHighlightText}>navigation/BottomTabNavigator.js</MonoText>
         </View>
-      </View>
+      </View> */}
+      <Text style={styles.clock}>
+        <Text style={styles.seco1}>{seco1}</Text>
+        {' '}
+        <Text style={styles.seco23}>{seco23}</Text>
+        {' '}
+        <Text style={styles.seco45}>{seco45}</Text>
+      </Text>
     </View>
   );
 }
@@ -93,7 +132,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    alignContent: 'center',
+    justifyContent: 'center',
   },
+
+  clock: {
+    textAlign: 'center',
+    fontFamily: 'Exan-Regular',
+  },
+  seco1: {
+    fontSize: 90,
+  },
+  seco23: {
+    fontSize: 80,
+  },
+  seco45: {
+    fontSize: 60,
+  },
+
+
   developmentModeText: {
     marginBottom: 20,
     color: 'rgba(0,0,0,0.4)',
