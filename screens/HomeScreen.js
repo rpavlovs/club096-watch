@@ -8,6 +8,7 @@ import { useFonts } from '@use-expo/font';
 import { differenceInSeconds, startOfDay, addHours, setDate, getHours, startOfYesterday } from 'date-fns'
 
 import { MonoText } from '../components/StyledText';
+import usePrevious from '../hooks/usePrevious'
 
 export default function HomeScreen() {
   let [fontsLoaded] = useFonts({
@@ -19,15 +20,14 @@ export default function HomeScreen() {
   React.useEffect(() => {
     const interval = setInterval(() => {
       setDate(Date.now())
-    }, 1000)
+    }, 1000 * 0.96)
     return () => clearInterval(interval)
   })
 
 
-  const startOfDay = getHours(date) >= 4 ? addHours(startOfDay(date), 4) : addHours(startOfYesterday(date), 4)
-  const timeSec = differenceInSeconds(Date.now(), startOfDay)
-  const timeSeco = timeSec * 0.96
-
+  const prev4am = getHours(date) >= 4 ? addHours(startOfDay(date), 4) : addHours(startOfYesterday(date), 4)
+  const timeMs = Date.now() - prev4am
+  const timeSeco = timeMs * 0.96 / 1000
 
 
   const pad2 = num => ("0" + num).slice(-2)
@@ -36,50 +36,17 @@ export default function HomeScreen() {
   const seco23 = pad2(Math.floor(timeSeco % 10000 / 100))
   const seco45 = pad2(Math.floor(timeSeco % 100))
 
+  const prevSeco45 = usePrevious(seco45)
+  const prevTimeMs = usePrevious(timeMs)
+
+  if (seco45 == prevSeco45) {
+    console.log({ seco45, timeMs, prevTimeMs })
+  }
+
   if (!fontsLoaded) return null
 
   return (
     <View style={styles.container}>
-      {/* <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.welcomeContainer}>
-          <Image
-            source={
-              __DEV__
-                ? require('../assets/images/robot-dev.png')
-                : require('../assets/images/robot-prod.png')
-            }
-            style={styles.welcomeImage}
-          />
-        </View>
-
-        <View style={styles.getStartedContainer}>
-          <DevelopmentModeNotice />
-
-          <Text style={styles.getStartedText}>Open up the code for this screen:</Text>
-
-          <View style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-            <MonoText>screens/HomeScreen.js</MonoText>
-          </View>
-
-          <Text style={styles.getStartedText}>
-            Change any of the text, save the file, and your app will automatically reload.
-          </Text>
-        </View>
-
-        <View style={styles.helpContainer}>
-          <TouchableOpacity onPress={handleHelpPress} style={styles.helpLink}>
-            <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      <View style={styles.tabBarInfoContainer}>
-        <Text style={styles.tabBarInfoText}>This is a tab bar. You can edit it in:</Text>
-
-        <View style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-          <MonoText style={styles.codeHighlightText}>navigation/BottomTabNavigator.js</MonoText>
-        </View>
-      </View> */}
       <Text style={styles.clock}>
         <Text style={styles.seco1}>{seco1}</Text>
         {' '}
